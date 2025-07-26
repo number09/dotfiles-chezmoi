@@ -1,0 +1,232 @@
+"dein Install Scripts Start-----------------------------
+
+let $CACHE = expand('~/.cache')
+if !isdirectory($CACHE)
+  call mkdir($CACHE, 'p')
+endif
+if &runtimepath !~# '/dein.vim'
+  let s:dein_dir = fnamemodify('dein.vim', ':p')
+  if !isdirectory(s:dein_dir)
+    let s:dein_dir = $CACHE .. '/dein/repos/github.com/Shougo/dein.vim'
+    if !isdirectory(s:dein_dir)
+      execute '!git clone https://github.com/Shougo/dein.vim' s:dein_dir
+    endif
+  endif
+  execute 'set runtimepath^=' .. substitute(
+        \ fnamemodify(s:dein_dir, ':p') , '[/\\]$', '', '')
+endif
+
+"dein Install Scripts End-----------------------------
+
+
+"-------------------------
+" start dein.vim settings
+"--------------------------
+
+if dein#load_state(s:dein_dir)
+    call dein#begin(s:dein_dir)
+
+    let g:dein_dir = expand('~/Project/number09/dotfiles/apps/vim/dein')
+    let s:toml = g:dein_dir.'/dein.toml'
+    "let s:lazy_toml = g:dein_dir.'/dein_lazy.toml'
+
+    call dein#load_toml(s:toml,     {'lazy':0})
+    "call dein#load_toml(s:lazy_toml,{'lazy':1})
+
+    call dein#end()
+    call dein#save_state()
+
+endif
+
+
+if dein#check_install()
+    call dein#install()
+endif
+
+
+"-------------------------
+" end dein.vim settings
+"--------------------------
+
+
+filetype plugin indent on
+syntax enable
+
+
+
+"---- Endoding --------------------------------------------------------
+set encoding=UTF-8
+set fileencoding=UTF-8
+set termencoding=UTF-8
+
+"---- Key Mapping -----------------------------------------------------
+"エスケープをCtrl-jにマッピング
+imap <c-j> <esc>
+" insertモードを抜けるとimeoff
+set imdisable
+
+"----- 検索関係 -------------------------------------------------------
+set ignorecase   "大文字小文字を区別しない
+set smartcase    "検索文字に大文字がある場合は大文字小文字を区別する
+set incsearch    "インクリメンタルサーチ
+set hlsearch     "検索マッチテキストをハイライト
+"バックスラッシュやクエスチョンを状況に合わせ自動的にエスケープ
+cnoremap <expr> / getcmdtype() == '/' ? '\/' : '/'
+cnoremap <expr> ? getcmdtype() == '?' ? '\?' : '?'
+
+
+
+"----- 編集関係 -------------------------------------------------------
+set shiftround   "'<'や'>'でインデントする際に、'shiftwidth'の倍数に丸める
+set infercase    "補完時に大文字小文字を区別しない
+set showmatch    "対応する括弧などをハイライト表示する
+set matchtime=3  "対応括弧のハイライト表示を3秒にする
+set backspace=indent,eol,start  "バックスペースでなんでも消せるようにする
+set tabstop=4
+set shiftwidth=4 "tabでスペース4つ入力
+set expandtab
+
+"対応括弧に'<'と'>'のペアを追加
+set matchpairs& matchpairs+=<:>
+
+"クリップボード使用(YankRing使用時はunnamedplusが必要)
+set clipboard& clipboard+=unnamed
+"----- その他 --------------------------------------------------------
+set nowritebackup
+set nobackup     "バックアップ無効
+set noswapfile   "swap無効
+set noundofile   "undo無効
+
+"----- 表示関係 -----------------------------------------------------
+set list         "不可視文字の可視化
+set number       "行番号を表示
+set cursorline   "カーソル行にマーク
+set wrap         "長いテキストの折り返し
+set textwidth=0  "自動的に改行が入るのを無効化
+set colorcolumn=80  "80文字目にラインを入れる
+" デフォルト不可視文字は美しくないのでUnicodeで綺麗に
+set listchars=tab:»-,trail:-,extends:»,precedes:«,nbsp:%,eol:↲
+
+"スクリーンベルの無効化
+set t_vb=
+set novisualbell
+
+"---- キー設定 ------------------------------------------------------
+" vimrcの編集とリロード用コマンド
+nnoremap <Space>. :<C-u>edit $MYVIMRC<Enter>
+nnoremap <Space>s. :<C-u>source $MYVIMRC<Enter>
+
+
+
+"VimFiler自動起動
+autocmd VimEnter * VimFiler -split -simple -winwidth=20 -no-quit
+
+
+"liteline設定
+let g:lightline = {
+        \ 'colorscheme': 'wombat',
+        \ 'mode_map': {'c': 'NORMAL'},
+        \ 'active': {
+        \   'left': [ [ 'mode', 'paste' ] , [ 'fugitive', 'filename' ] ]
+        \ },
+        \ 'component_function': {
+        \   'modified': 'MyModified',
+        \   'readonly': 'MyReadonly',
+        \   'fugitive': 'MyFugitive',
+        \   'filename': 'MyFilename',
+        \   'fileformat': 'MyFileformat',
+        \   'filetype': 'MyFiletype',
+        \   'fileencoding': 'MyFileencoding',
+        \   'mode': 'MyMode',
+        \ }
+        \ }
+
+function! MyModified()
+  return &ft =~ 'help\|vimfiler\|gundo' ? '' : &modified ? '+' : &modifiable ? '' : '-'
+endfunction
+
+function! MyReadonly()
+  return &ft !~? 'help\|vimfiler\|gundo' && &readonly ? 'x' : ''
+endfunction
+
+function! MyFilename()
+  return ('' != MyReadonly() ? MyReadonly() . ' ' : '') .
+        \ (&ft == 'vimfiler' ? vimfiler#get_status_string() :
+        \  &ft == 'unite' ? unite#get_status_string() :
+        \  &ft == 'vimshell' ? vimshell#get_status_string() :
+        \ '' != expand('%:t') ? expand('%:t') : '[No Name]') .
+        \ ('' != MyModified() ? ' ' . MyModified() : '')
+endfunction
+       
+function! MyFugitive()
+  try
+    if &ft !~? 'vimfiler\|gundo' && exists('*fugitive#head')
+      return fugitive#head()
+    endif
+  catch
+  endtry
+  return ''
+endfunction
+
+function! MyFileformat()
+  return winwidth(0) > 70 ? &fileformat : ''
+endfunction
+
+function! MyFiletype()
+  return winwidth(0) > 70 ? (strlen(&filetype) ? &filetype : 'no ft') : ''
+endfunction
+
+function! MyFileencoding()
+  return winwidth(0) > 70 ? (strlen(&fenc) ? &fenc : &enc) : ''
+endfunction
+
+function! MyMode()
+  return winwidth(0) > 60 ? lightline#mode() : ''
+endfunction
+
+"--- Python  ----------------------------------------------------------
+"----- vim-flake8 -----------------------------------------------------
+autocmd BufWritePost *.py call Flake8()
+let g:flake8_quickfix_location="topleft"
+let g:flake8_quickfix_height=7
+let g:flake8_show_in_gutter=1
+let g:flake8_show_in_file=1
+
+
+
+
+"--- Tagbar -----------------------------------------------------------
+nmap <Leader>t :TagbarToggle<CR>
+
+
+
+"--- Markdown -----------------------------------------------------------
+ 
+au BufRead,BufNewFile *.md set filetype=markdown
+let g:vim_markdown_folding_disabled=1
+
+"--- previm -----------------------------------------------------------
+let g:previm_disable_default_css = 1
+let g:previm_custom_css_path = '~/Project/number09/dotfiles/apps/vim/markdown.css'
+let g:previm_show_header = 0
+
+"--- simplenote.vim -----------------------------------------------------------
+
+let g:SimplenoteUsername = ""
+let g:SimplenotePassword = ""
+let g:SimplenoteFiletype = "markdown"
+let g:SimplenoteVertical = 1
+
+
+"--- Others -----------------------------------------------------------
+
+
+"カラーテーマ
+syntax on
+colorscheme hybrid
+
+
+
+
+
+

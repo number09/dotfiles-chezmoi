@@ -1,0 +1,240 @@
+# Amazon Q pre block. Keep at the top of this file.
+[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"
+PATH=/usr/local/bin:$PATH
+export PATH
+
+# vim key
+bindkey -v
+
+
+# (for M1) ARM / x86 Switcher
+charch() {
+    if  [[ "$(uname -m)" == arm64 ]]; then
+        arch=x86_64
+    elif [[ "$(uname -m)" == x86_64 ]]; then
+        arch=arm64e
+    fi
+    exec arch -arch $arch "$SHELL" -l
+}
+
+
+if [ "$(uname -m)" = "arm64" ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+  export PATH="/opt/homebrew/bin:$PATH"
+else
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+
+#######
+# 独自スクリプト
+# 現在のスクリプトのディレクトリを取得
+# script_dir=$(dirname "$(readlink -f "$0")")
+# current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+
+# 別のスクリプトを読み込む（例：subscript.sh）
+# シンボリックリンクから実行する前提で、実際のファイルパスを取得してcli_proxy.shを読み込む
+ZSH_CONFIG_DIR="$(dirname "$(readlink -f "$0")")"
+if [[ -f "${ZSH_CONFIG_DIR}/cli_proxy.sh" ]]; then
+    source "${ZSH_CONFIG_DIR}/cli_proxy.sh"
+fi
+
+
+# -------------------------
+# direnv for zsh
+# -------------------------
+eval "$(direnv hook zsh)"
+
+
+# -------------------------
+# Node memory size (deffault 512MB)
+# -------------------------
+export NODE_OPTIONS="--max-old-space-size=4096"
+
+
+# -------------------------
+# MacVim
+# -------------------------
+export PATH=/Applications/MacVim.app/Contents/MacOS:$PATH
+export EDITOR=/Applications/MacVim.app/Contents/MacOS/Vim
+alias vim='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/Vim "$@"'
+alias vi=vim
+alias mvim='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/MacVim "$@"'
+
+
+# ref https://gist.github.com/mollifier/4979906
+######################################
+# 環境変数
+export LANG=ja_JP.UTF-8
+
+
+# CI環境じゃない時のみ補完機能を有効化
+if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
+    # 色を使用できるようにする
+    autoload -Uz colors
+    colors
+fi
+
+
+# ヒストリの設定
+HISTFILE=~/.zsh_history
+HISTSIZE=1000000
+SAVEHIST=1000000
+
+# プロンプト
+if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
+    PROMPT="[$(uname -m)]%{${fg[blue]}%}%n:%{${reset_color}%} %c/ %# "
+else
+    PROMPT="[$(uname -m)]%n: %c/ %# "
+fi
+
+
+#####################################
+# 補完
+# 補完機能を有効にする
+autoload -Uz compinit
+# CI環境じゃない時のみ補完機能を有効化
+if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
+    compinit
+fi
+
+
+
+# # 補完で小文字でも大文字にマッチさせる
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+# ../ の後は今いるディレクトリを補完しない
+zstyle ':completion:*' ignore-parents parent pwd ..
+
+# sudo の後ろでコマンド名を補完する
+zstyle ':completion:*:sudo:*' command-path /usr/local/sbin /usr/local/bin \
+            /usr/sbin /usr/bin /sbin /bin /usr/11R6/bin
+
+# ps コマンドのプロセス名補完
+zstyle ':completion:*:processes' command 'ps x -o pid,s,args'
+
+# history search
+bindkey '^P' history-beginning-search-backward
+bindkey '^N' history-beginning-search-forward
+
+
+#############################
+# オプション
+# 日本語ファイル名を表示可能にする
+setopt print_eight_bit
+
+# beep を無効にする
+setopt no_beep
+
+# フローコントロールを無効にする
+setopt no_flow_control
+
+# '#' 以降をコメントとして扱う
+setopt interactive_comments
+
+# ディレクトリ名だけでcdする
+setopt auto_cd
+
+# cd したら自動的にpushdする
+setopt auto_pushd
+
+# 重複したディレクトリを追加しない
+setopt pushd_ignore_dups
+
+# 同時に起動したzshの間でヒストリを共有する
+setopt share_history
+
+# 同じコマンドをヒストリに残さない
+setopt hist_ignore_all_dups
+
+# 同じコマンドをヒストリに残さない
+setopt hist_ignore_all_dups
+
+# スペースから始まるコマンド行はヒストリに残さない
+setopt hist_ignore_space
+
+# ヒストリに保存するときに余分なスペースを削除する
+setopt hist_reduce_blanks
+
+# 高機能なワイルドカード展開を使用する
+setopt extended_glob
+
+########################################
+# エイリアス
+
+alias rm='rm -i'
+alias cp='cp -i'
+alias mv='mv -i'
+
+alias mkdir='mkdir -p'
+
+
+# C で標準出力をクリップボードにコピーする
+# mollifier delta blog : http://mollifier.hatenablog.com/entry/20100317/p1
+if which pbcopy >/dev/null 2>&1 ; then
+    # Mac
+    alias -g C='| pbcopy'
+elif which xsel >/dev/null 2>&1 ; then
+    # Linux
+    alias -g C='| xsel --input --clipboard'
+fi
+
+
+#############################
+# OS 別の設定
+case ${OSTYPE} in
+    darwin*)
+        #Mac用の設定
+        export CLICOLOR=l
+        alias ls='ls -G -F'
+        ;;
+esac
+
+##################
+
+### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
+export PATH="${HOME}/.rd/bin:$PATH"
+### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
+export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
+
+
+# source "$HOME/.rye/env"
+
+# poetry
+export PATH="$HOME/.local/bin:$PATH"
+
+# tenv
+# ない。。。
+# source '~/.tenv.completion.zsh'
+#
+
+# Flutter
+export PATH=$HOME/development/flutter/bin:$PATH
+# FlutterFire CLI
+export PATH="$PATH":"$HOME/.pub-cache/bin"
+eval "$(mise activate zsh)"
+
+
+
+# google cloud sdk from homebrew
+source "/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc"
+source "/opt/homebrew/share/google-cloud-sdk/path.zsh.inc"
+
+
+
+# ModdableSDK
+export MODDABLE=~/.local/share/moddable
+export PATH=$MODDABLE/tools/bin:$PATH
+
+# php
+export PATH="/opt/homebrew/opt/php@7.4/bin:$PATH"
+
+
+# Amazon Q post block. Keep at the bottom of this file.
+[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
+
+# CI環境じゃない時のみ有効化
+if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
+    [[ "$TERM_PROGRAM" == "vscode" ]] && . "$(kiro --locate-shell-integration-path zsh)"
+fi
