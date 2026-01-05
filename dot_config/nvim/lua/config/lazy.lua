@@ -29,6 +29,9 @@ require("lazy").setup({
     {
         'nvim-lualine/lualine.nvim',
         dependencies = { 'nvim-tree/nvim-web-devicons' }
+    },
+    {
+        'nvim-tree/nvim-tree.lua',
     }
   },
   -- Configure any other settings here. See the documentation for more details.

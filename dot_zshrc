@@ -1,5 +1,5 @@
-# Amazon Q pre block. Keep at the top of this file.
-[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.pre.zsh"
+# Kiro CLI pre block. Keep at the top of this file.
+[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
 PATH=/usr/local/bin:$PATH
 export PATH
 
@@ -56,11 +56,19 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 # -------------------------
 # MacVim
 # -------------------------
-export PATH=/Applications/MacVim.app/Contents/MacOS:$PATH
-export EDITOR=/Applications/MacVim.app/Contents/MacOS/Vim
-alias vim='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/Vim "$@"'
-alias vi=vim
-alias mvim='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/MacVim "$@"'
+# export PATH=/Applications/MacVim.app/Contents/MacOS:$PATH
+# export EDITOR=/Applications/MacVim.app/Contents/MacOS/Vim
+# alias vim='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/Vim "$@"'
+# alias vi=vim
+# alias mvim='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/MacVim "$@"'
+#
+# -------------------------
+# NeoVim
+# -------------------------
+export EDITOR=nvim
+export VISUAL=nvim
+alias vim=nvim
+alias vi=nvim
 
 
 # ref https://gist.github.com/mollifier/4979906
@@ -88,6 +96,207 @@ if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
 else
     PROMPT="[$(uname -m)]%n: %c/ %# "
 fi
+
+
+
+# ---
+
+typeset -g _git_info_cache=""
+typeset -g _git_info_cache_pwd=""
+typeset -g _git_info_cache_head=""
+typeset -g _git_info_cache_time=0
+typeset -g _git_info_cache_timeout=5
+
+function git_prompt_info() {
+  if ! git rev-parse --git-dir > /dev/null 2>&1; then
+    return
+  fi
+
+  local current_pwd=$PWD
+  local current_time=$SECONDS
+  local current=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+
+  # キャッシュチェック
+  if [[ "$_git_info_cache_pwd" == "$current_pwd" ]] && \
+     [[ "$_git_info_cache_head" == "$current" ]] && \
+     (( current_time - _git_info_cache_time < _git_info_cache_timeout )); then
+    echo "$_git_info_cache"
+    return
+  fi
+
+  local parent=""
+  local result=""
+
+  # メインブランチのリスト
+  local main_branches=("main" "master" "develop" "development" "staging")
+
+  # 現在のブランチがメインブランチかチェック
+  local is_main_branch=0
+  for branch in "${main_branches[@]}"; do
+    if [[ "$current" == "$branch" ]]; then
+      is_main_branch=1
+      break
+    fi
+  done
+
+  # 現在のブランチがメインブランチの場合は派生元を表示しない
+  if [[ $is_main_branch -eq 1 ]]; then
+    result="%F{magenta}$current%f"
+  else
+    # フィーチャーブランチの場合のみ派生元を探す
+
+    # 方法1: git configから（明示的に設定されている場合）
+    parent=$(git config "branch.$current.parent" 2>/dev/null)
+
+    # 方法2: 主要ブランチとの分岐点を探す（最も信頼性が高い）
+    if [[ -z "$parent" ]]; then
+      local best_parent=""
+      local best_distance=999999
+
+      for branch in "${main_branches[@]}"; do
+        if git show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null; then
+          # 分岐点のコミット数を計算
+          local merge_base=$(git merge-base "$branch" HEAD 2>/dev/null)
+          if [[ -n "$merge_base" ]]; then
+            local distance=$(git rev-list --count "$merge_base..HEAD" 2>/dev/null)
+            # 現在のブランチがそのブランチを含んでいて、距離が最短のものを選ぶ
+            if git merge-base --is-ancestor "$branch" HEAD 2>/dev/null; then
+              if [[ $distance -lt $best_distance ]]; then
+                best_distance=$distance
+                best_parent="$branch"
+              fi
+            fi
+          fi
+        fi
+      done
+      parent="$best_parent"
+    fi
+
+    # 方法3: reflogから（フォールバック、ブランチ作成時のエントリを探す）
+    if [[ -z "$parent" ]]; then
+      parent=$(git reflog show "$current" 2>/dev/null | \
+               grep "branch: Created from" | \
+               head -1 | \
+               sed -E 's/.*Created from (refs\/heads\/)?([^ ]+).*/\2/')
+    fi
+
+    # 方法4: 全ブランチから最も近い祖先を探す（最終フォールバック）
+    if [[ -z "$parent" ]]; then
+      local all_branches=$(git for-each-ref --format='%(refname:short)' refs/heads/ 2>/dev/null)
+      local best_parent=""
+      local best_distance=999999
+
+      for branch in $all_branches; do
+        if [[ "$branch" != "$current" ]]; then
+          if git merge-base --is-ancestor "$branch" HEAD 2>/dev/null; then
+            local merge_base=$(git merge-base "$branch" HEAD 2>/dev/null)
+            if [[ -n "$merge_base" ]]; then
+              local distance=$(git rev-list --count "$merge_base..HEAD" 2>/dev/null)
+              if [[ $distance -lt $best_distance ]]; then
+                best_distance=$distance
+                best_parent="$branch"
+              fi
+            fi
+          fi
+        fi
+      done
+      parent="$best_parent"
+    fi
+
+    # 結果の組み立て
+    if [[ -n "$parent" ]] && [[ "$parent" != "$current" ]]; then
+      result="%F{cyan}$current%f %F{yellow}←%f %F{green}$parent%f"
+    else
+      result="%F{cyan}$current%f"
+    fi
+  fi
+
+  # キャッシュ更新
+  _git_info_cache="$result"
+  _git_info_cache_pwd="$current_pwd"
+  _git_info_cache_head="$current"
+  _git_info_cache_time=$current_time
+
+  echo "$result"
+}
+
+setopt prompt_subst
+RPROMPT='$(git_prompt_info)'
+
+# ---
+
+# ---
+
+assume() {
+  local profile="$1"
+  local mfa_token="$2"
+
+  if [[ -z "$profile" ]]; then
+    echo "Usage: assume <profile-name> [mfa-token]"
+    return 1
+  fi
+
+  echo "Assuming profile: $profile ..."
+
+  # プロファイルからrole_arn, source_profile, mfa_serialを取得
+  local role_arn=$(aws configure get role_arn --profile "$profile" 2>/dev/null)
+  local source_profile=$(aws configure get source_profile --profile "$profile" 2>/dev/null)
+  local mfa_serial=$(aws configure get mfa_serial --profile "$profile" 2>/dev/null)
+  local region=$(aws configure get region --profile "$profile" 2>/dev/null)
+
+  # role_arnがない場合は単純にexport-credentialsを使う
+  if [[ -z "$role_arn" ]]; then
+    eval "$(aws configure export-credentials --profile "$profile" --format env)"
+  else
+    # source_profileを使ってAssumeRole
+    local src="${source_profile:-default}"
+
+    local assume_args=(
+      sts assume-role
+      --role-arn "$role_arn"
+      --role-session-name "cli-session-$(date +%s)"
+      --profile "$src"
+      --output json
+    )
+
+    # MFAが必要な場合
+    if [[ -n "$mfa_serial" ]]; then
+      # MFAトークンが引数で渡されていない場合は入力を求める
+      if [[ -z "$mfa_token" ]]; then
+        echo -n "MFA Token: "
+        read mfa_token
+      fi
+      assume_args+=(--serial-number "$mfa_serial" --token-code "$mfa_token")
+    fi
+
+    local result
+    result=$(aws "${assume_args[@]}" 2>&1)
+
+    if [[ $? -ne 0 ]]; then
+      echo "Error: $result"
+      return 1
+    fi
+
+    export AWS_ACCESS_KEY_ID=$(echo "$result" | jq -r '.Credentials.AccessKeyId')
+    export AWS_SECRET_ACCESS_KEY=$(echo "$result" | jq -r '.Credentials.SecretAccessKey')
+    export AWS_SESSION_TOKEN=$(echo "$result" | jq -r '.Credentials.SessionToken')
+    export AWS_CREDENTIAL_EXPIRATION=$(echo "$result" | jq -r '.Credentials.Expiration')
+  fi
+
+  # リージョン設定
+  if [[ -n "$region" ]]; then
+    export AWS_DEFAULT_REGION="$region"
+    export AWS_REGION="$region"
+  fi
+
+  echo ""
+  echo "✓ Assumed: $profile"
+  echo "  AccessKeyId: ${AWS_ACCESS_KEY_ID:0:16}..."
+  echo "  SessionToken: ${AWS_SESSION_TOKEN:+Set}"
+  echo "  Expires: ${AWS_CREDENTIAL_EXPIRATION:-N/A}"
+}
+# ---
+
 
 
 #####################################
@@ -192,10 +401,6 @@ case ${OSTYPE} in
 esac
 
 ##################
-
-### MANAGED BY RANCHER DESKTOP START (DO NOT EDIT)
-export PATH="${HOME}/.rd/bin:$PATH"
-### MANAGED BY RANCHER DESKTOP END (DO NOT EDIT)
 export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 
 
@@ -229,12 +434,27 @@ export PATH=$MODDABLE/tools/bin:$PATH
 
 # php
 export PATH="/opt/homebrew/opt/php@7.4/bin:$PATH"
-
-
-# Amazon Q post block. Keep at the bottom of this file.
-[[ -f "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/amazon-q/shell/zshrc.post.zsh"
-
 # CI環境じゃない時のみ有効化
 if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
     [[ "$TERM_PROGRAM" == "vscode" ]] && . "$(kiro --locate-shell-integration-path zsh)"
 fi
+
+# Kiro CLI post block. Keep at the bottom of this file.
+[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
+
+# 1password shell plugin
+# source /Users/ogura.koichi/.config/op/plugins.sh
+
+
+
+# pnpm
+export PNPM_HOME="/Users/ogura.koichi/Library/pnpm"
+case ":$PATH:" in
+  *":$PNPM_HOME:"*) ;;
+  *) export PATH="$PNPM_HOME:$PATH" ;;
+esac
+# pnpm end
+
+
+alias npx='echo "WARNING: npx は実行しないでください" && false'
+alias npm='echo "WARNING: npm は実行しないでください" && false'
