@@ -458,3 +458,5 @@ esac
 
 alias npx='echo "WARNING: npx は実行しないでください" && false'
 alias npm='echo "WARNING: npm は実行しないでください" && false'
+export PATH="$HOME/.rd/bin:$PATH"
+export DOCKER_HOST=unix:///var/run/docker.sock
