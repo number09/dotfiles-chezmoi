@@ -25,14 +25,14 @@ vim.g.maplocalleader = "\\"
 require("lazy").setup({
   spec = {
     -- import your plugins
-    -- { import = "plugins" },
-    {
-        'nvim-lualine/lualine.nvim',
-        dependencies = { 'nvim-tree/nvim-web-devicons' }
-    },
-    {
-        'nvim-tree/nvim-tree.lua',
-    }
+    { import = "plugins" },
+    -- {
+    --     'nvim-lualine/lualine.nvim',
+    --     dependencies = { 'nvim-tree/nvim-web-devicons' }
+    -- },
+    -- {
+    --     'nvim-tree/nvim-tree.lua',
+    -- }
   },
   -- Configure any other settings here. See the documentation for more details.
   -- colorscheme that will be used when installing plugins.
