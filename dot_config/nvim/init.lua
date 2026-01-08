@@ -1,5 +1,12 @@
 -- 行番号の表示
 vim.opt.number = true
 
-require("config.lazy")
+-- タブの大きさ
+vim.opt.tabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.softtabstop = 2
+vim.opt.expandtab = true
 
+
+require("config.lazy")
+require("config.lsp")
