@@ -21,7 +21,7 @@ config.initial_cols = 120
 config.initial_rows = 28
 
 -- or, changing the font size and color scheme.
-config.font_size = 16
+config.font_size = 10
 -- color scheme
 config.color_scheme = "iceberg-dark"
 
