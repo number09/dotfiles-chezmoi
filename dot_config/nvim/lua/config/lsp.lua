@@ -30,9 +30,10 @@ vim.api.nvim_create_autocmd("LspAttach", {
         { buffer = buf, desc = "Show hover documentation" })
     end
 
-    if client:supports_method("textDocument/completion") then
-      vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
-    end
+    -- blink.cmpを使用するため、組み込みの補完機能は無効化
+    -- if client:supports_method("textDocument/completion") then
+    --   vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
+    -- end
 
     -- Auto-format ("lint") on save.
     -- Usually not needed if server supports "textDocument/willSaveWaitUntil".
