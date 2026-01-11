@@ -114,3 +114,10 @@ chezmoi apply
 | ファイルを追加 (ファイラー) | `<leader>as` | [claudecode.lua](dot_config/nvim/lua/plugins/claudecode.lua#L15) |
 | Diffを承認 | `<leader>aa` | [claudecode.lua](dot_config/nvim/lua/plugins/claudecode.lua#L21) |
 | Diffを拒否 | `<leader>ad` | [claudecode.lua](dot_config/nvim/lua/plugins/claudecode.lua#L22) |
+
+## Neovim (Telescope)
+
+| 操作 | ショートカット |
+|------|----------------|
+| ファイル検索 (find files) | `ff` |
+| ファイル検索 (directory) | `fd` |
