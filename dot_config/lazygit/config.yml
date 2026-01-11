@@ -1,4 +1,10 @@
 git:
   autoFetch: false
-  paging: 
+  paging:
     pager: delta --dark --paging=never
+
+customCommands:
+  - key: "<c-t>"
+    context: "worktrees"
+    command: "wezterm cli spawn --cwd {{.SelectedWorktree.Path}}"
+    description: "Open worktree in new WezTerm tab"
