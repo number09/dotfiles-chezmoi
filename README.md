@@ -8,9 +8,10 @@
 ### dump Brewfile
 
 at home directory
+
 ```
 brew bundle dump --force
-
+```
 
 ### check diff
 
@@ -18,7 +19,6 @@ brew bundle dump --force
 chezmoi diff
 ```
 
-```
 ### file -> chezmoi
 ```
 chezmoi re-add <filename>
