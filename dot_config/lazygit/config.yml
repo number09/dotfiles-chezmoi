@@ -6,5 +6,5 @@ git:
 customCommands:
   - key: "<c-t>"
     context: "worktrees"
-    command: "wezterm cli spawn --cwd {{.SelectedWorktree.Path}}"
-    description: "Open worktree in new WezTerm tab"
+    command: "wezterm cli spawn --cwd {{.SelectedWorktree.Path}} -- bash -c 'branch=$(git -C {{.SelectedWorktree.Path}} branch --show-current); wezterm cli set-tab-title \"$branch\"; exec $SHELL'"
+    description: "Open worktree in new WezTerm tab with branch name"
