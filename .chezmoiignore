@@ -1,2 +1,3 @@
 README.md
 .config/lazygit/state.yml
+.config/nvim/obsidian_local.lua

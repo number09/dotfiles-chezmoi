@@ -35,6 +35,50 @@ chezmoi add <filename>
 chezmoi apply
 ```
 
+## 個人設定ファイル
+
+一部のプラグインでは、個人情報（パス、メールアドレスなど）を含む設定ファイルを別ファイルとして管理しています。
+これらのファイルは`.chezmoiignore`に追加されており、gitで管理されません。
+
+### Obsidian.nvim
+
+obsidian.nvimのワークスペース設定は、個人固有の情報を含むため別ファイルで管理します。
+
+**設定ファイル**: `~/.config/nvim/obsidian_local.lua` (gitで管理されない)
+
+**作成方法**:
+```bash
+cat > ~/.config/nvim/obsidian_local.lua << 'EOF'
+-- このファイルはgitで管理しないでください（個人設定用）
+return {
+  workspaces = {
+    {
+      name = "work",
+      path = "~/path/to/your/obsidian-vault",
+    },
+  },
+}
+EOF
+```
+
+**設定例**:
+```lua
+return {
+  workspaces = {
+    {
+      name = "personal",
+      path = "~/Documents/obsidian-vault",
+    },
+    {
+      name = "work",
+      path = "~/Google Drive/My Vault",
+    },
+  },
+}
+```
+
+このファイルが存在しない場合は、デフォルト設定 (`~/Documents/obsidian-vault`) が使用されます。
+
 ## WezTerm ショートカットチートシート
 
 ### タブ操作
