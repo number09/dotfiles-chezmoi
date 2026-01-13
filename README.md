@@ -142,6 +142,7 @@ return {
 
 | 操作 | ショートカット | コンテキスト | 設定箇所 |
 |------|----------------|--------------|----------|
+| Worktreeを新しいWezTermタブで開く | `Ctrl + T` | localBranches | [config.yml](dot_config/lazygit/config.yml#L11) |
 | Worktreeを新しいWezTermタブで開く | `Ctrl + T` | worktrees | [config.yml](dot_config/lazygit/config.yml#L7) |
 
 ## Neovim (claudecode.nvim)
