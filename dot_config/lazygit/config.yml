@@ -8,3 +8,7 @@ customCommands:
     context: "worktrees"
     command: "wezterm cli spawn --cwd {{.SelectedWorktree.Path}} -- bash -c 'branch=$(git -C {{.SelectedWorktree.Path}} branch --show-current); wezterm cli set-tab-title \"$branch\"; exec $SHELL'"
     description: "Open worktree in new WezTerm tab with branch name"
+  - key: "<c-t>"
+    context: "localBranches"
+    command: "wezterm cli spawn --cwd . -- bash -c 'branch={{.SelectedLocalBranch.Name}}; wezterm cli set-tab-title \"$branch\"; exec $SHELL'"
+    description: "Open current branch in new WezTerm tab"
