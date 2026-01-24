@@ -2,7 +2,6 @@ git:
   autoFetch: false
   paging:
     pager: delta --dark --paging=never
-
 customCommands:
   - key: "<c-t>"
     context: "worktrees"
@@ -10,5 +9,52 @@ customCommands:
     description: "Open worktree in new WezTerm tab with branch name"
   - key: "<c-t>"
     context: "localBranches"
-    command: "wezterm cli spawn --cwd . -- bash -c 'branch={{.SelectedLocalBranch.Name}}; wezterm cli set-tab-title \"$branch\"; exec $SHELL'"
-    description: "Open current branch in new WezTerm tab"
+    command: "wezterm cli spawn --cwd $(gwq get {{.SelectedLocalBranch.Name}} 2>/dev/null) -- bash -c 'wezterm cli set-tab-title \"{{.SelectedLocalBranch.Name}}\"; exec $SHELL'"
+    description: "Open branch's worktree in new WezTerm tab"
+  # gwq add: 現在のブランチから新しいブランチとworktreeを作成
+  - key: "<c-n>"
+    command: "gwq add -b {{.Form.BranchName}}"
+    context: "global"
+    prompts:
+      - type: "input"
+        title: "新しいブランチとworktreeを作成 - ブランチ名を入力 (基点: {{.CheckedOutBranch.Name}})"
+        key: "BranchName"
+        initialValue: ""
+    description: "gwq: 新しいブランチとworktreeを作成"
+    output: terminal
+  # gwq remove: 選択中のworktreeとブランチを削除（worktreeビューから）
+  - key: "<c-x>"
+    command: "{{if eq .Form.Confirm \"はい\"}}gwq remove -b {{.SelectedWorktree.Name}}{{end}}"
+    context: "worktrees"
+    prompts:
+      - type: "menu"
+        title: "worktree '{{.SelectedWorktree.Name}}' とブランチを削除しますか？"
+        key: "Confirm"
+        options:
+          - name: "いいえ"
+            value: "いいえ"
+          - name: "はい"
+            value: "はい"
+    description: "gwq: 選択中のworktreeとブランチを削除"
+    output: terminal
+  # gwq remove: 選択中のブランチのworktreeとブランチを削除（localBranchesビューから）
+  - key: "<c-x>"
+    command: "{{if eq .Form.Confirm \"はい\"}}gwq remove -b {{.SelectedLocalBranch.Name}}{{end}}"
+    context: "localBranches"
+    prompts:
+      - type: "menu"
+        title: "ブランチ '{{.SelectedLocalBranch.Name}}' のworktreeとブランチを削除しますか？"
+        key: "Confirm"
+        options:
+          - name: "いいえ"
+            value: "いいえ"
+          - name: "はい"
+            value: "はい"
+    description: "gwq: 選択中のブランチのworktreeとブランチを削除"
+    output: terminal
+  # gwq add: 選択したローカルブランチからworktreeを作成
+  - key: "<c-a>"
+    command: "gwq add {{.SelectedLocalBranch.Name}}"
+    context: "localBranches"
+    description: "gwq: 選択したローカルブランチからworktreeを作成"
+    output: terminal
