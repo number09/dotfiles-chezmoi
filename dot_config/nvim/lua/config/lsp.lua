@@ -31,6 +31,16 @@ vim.api.nvim_create_autocmd("LspAttach", {
         { buffer = buf, desc = "Show hover documentation" })
     end
 
+    -- 診断情報をフロートウィンドウで表示
+    vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float,
+      { buffer = buf, desc = "Show diagnostic details" })
+
+    -- 前/次の診断へ移動
+    vim.keymap.set("n", "[d", vim.diagnostic.goto_prev,
+      { buffer = buf, desc = "Go to previous diagnostic" })
+    vim.keymap.set("n", "]d", vim.diagnostic.goto_next,
+      { buffer = buf, desc = "Go to next diagnostic" })
+
     -- blink.cmpを使用するため、組み込みの補完機能は無効化
     -- if client:supports_method("textDocument/completion") then
     --   vim.lsp.completion.enable(true, client.id, args.buf, { autotrigger = true })
