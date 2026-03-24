@@ -1,5 +1,5 @@
 # Kiro CLI pre block. Keep at the top of this file.
-[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
+#[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
 PATH=/usr/local/bin:$PATH
 export PATH
 
@@ -377,6 +377,10 @@ setopt extended_glob
 ########################################
 # エイリアス
 
+# Obsidian vault
+alias cdob='cd ~/Library/CloudStorage/GoogleDrive-{{ .workEmail }}/マイドライブ/obsidian-vault'
+alias cdot='cd ~/Library/CloudStorage/GoogleDrive-{{ .personalEmail }}/マイドライブ/obsidian-tech-vault'
+
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
@@ -445,7 +449,7 @@ if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
 fi
 
 # Kiro CLI post block. Keep at the bottom of this file.
-[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
+#[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
 
 # 1password shell plugin
 # source /Users/ogura.koichi/.config/op/plugins.sh
