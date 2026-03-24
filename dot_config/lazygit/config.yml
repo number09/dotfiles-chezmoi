@@ -5,12 +5,36 @@ git:
 customCommands:
   - key: "<c-t>"
     context: "worktrees"
-    command: "wezterm cli spawn --cwd {{.SelectedWorktree.Path}} -- bash -c 'branch=$(git -C {{.SelectedWorktree.Path}} branch --show-current); wezterm cli set-tab-title \"$branch\"; exec $SHELL'"
-    description: "Open worktree in new WezTerm tab with branch name"
+    command: >-
+      if [ -n "$CMUX_WORKSPACE_ID" ]; then
+        surf_id=$(cmux new-surface --type terminal | awk '{print $2}');
+        branch=$(git -C {{.SelectedWorktree.Path}} branch --show-current);
+        cmux rename-tab --surface "$surf_id" "$branch";
+        sleep 0.5;
+        cmux send --surface "$surf_id" "cd {{.SelectedWorktree.Path}} && exec $SHELL
+      ";
+      else
+        wezterm cli spawn --cwd {{.SelectedWorktree.Path}} -- bash -c 'branch=$(git -C {{.SelectedWorktree.Path}} branch --show-current); wezterm cli set-tab-title "$branch"; exec $SHELL';
+      fi
+    description: "Open worktree in new tab/workspace with branch name"
   - key: "<c-t>"
     context: "localBranches"
-    command: "wezterm cli spawn --cwd $(gwq get {{.SelectedLocalBranch.Name}} 2>/dev/null) -- bash -c 'wezterm cli set-tab-title \"{{.SelectedLocalBranch.Name}}\"; exec $SHELL'"
-    description: "Open branch's worktree in new WezTerm tab"
+    command: >-
+      if [ "{{.SelectedLocalBranch.Name}}" = "{{.CheckedOutBranch.Name}}" ]; then
+        echo "現在チェックアウト中のブランチです。worktreeビューから操作してください。";
+        exit 0;
+      fi;
+      if [ -n "$CMUX_WORKSPACE_ID" ]; then
+        wt_path=$(gwq get {{.SelectedLocalBranch.Name}} 2>/dev/null);
+        surf_id=$(cmux new-surface --type terminal | awk '{print $2}');
+        cmux rename-tab --surface "$surf_id" "{{.SelectedLocalBranch.Name}}";
+        sleep 0.5;
+        cmux send --surface "$surf_id" "cd $wt_path && exec $SHELL
+      ";
+      else
+        wezterm cli spawn --cwd $(gwq get {{.SelectedLocalBranch.Name}} 2>/dev/null) -- bash -c 'wezterm cli set-tab-title "{{.SelectedLocalBranch.Name}}"; exec $SHELL';
+      fi
+    description: "Open branch's worktree in new tab/workspace"
   # gwq add: 現在のブランチから新しいブランチとworktreeを作成
   - key: "<c-n>"
     command: "gwq add -b {{.Form.BranchName}}"
