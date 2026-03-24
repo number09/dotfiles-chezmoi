@@ -23,7 +23,11 @@ config.initial_rows = 28
 -- or, changing the font size and color scheme.
 config.font_size = 14
 -- color scheme
+--
 config.color_scheme = "iceberg-dark"
+
+-- tab
+config.use_fancy_tab_bar = false
 
 -- font
 config.font = wezterm.font("Ricty Diminished")
@@ -31,8 +35,8 @@ config.font = wezterm.font("Ricty Diminished")
 -- パネルの視認性を向上
 -- 非アクティブなパネルを暗くする (hsb: 色相, 彩度, 明度)
 config.inactive_pane_hsb = {
-  saturation = 0.6,  -- 彩度を60%に (かなり色あせた感じ)
-  brightness = 0.4,  -- 明度を40%に (かなり暗くする)
+  saturation = 0.6, -- 彩度を60%に (かなり色あせた感じ)
+  brightness = 0.4, -- 明度を40%に (かなり暗くする)
 }
 
 config.keys = {
