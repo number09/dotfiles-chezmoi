@@ -5,6 +5,7 @@ vim.lsp.enable({
   -- https://github.com/neovim/nvim-lspconfig/blob/master/lsp/lua_ls.lua
   "lua_ls",
   "ts_ls",
+  "pyright",
   -- 他の言語サーバーの設定
   -- "gopls",
 })
