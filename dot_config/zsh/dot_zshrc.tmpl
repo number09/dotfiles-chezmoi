@@ -1,5 +1,3 @@
-# Kiro CLI pre block. Keep at the top of this file.
-#[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.pre.zsh"
 PATH=/usr/local/bin:$PATH
 export PATH
 
@@ -26,21 +24,6 @@ else
 fi
 
 
-#######
-# 独自スクリプト
-# 現在のスクリプトのディレクトリを取得
-# script_dir=$(dirname "$(readlink -f "$0")")
-# current_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-
-
-# 別のスクリプトを読み込む（例：subscript.sh）
-# シンボリックリンクから実行する前提で、実際のファイルパスを取得してcli_proxy.shを読み込む
-ZSH_CONFIG_DIR="$(dirname "$(readlink -f "$0")")"
-if [[ -f "${ZSH_CONFIG_DIR}/cli_proxy.sh" ]]; then
-    source "${ZSH_CONFIG_DIR}/cli_proxy.sh"
-fi
-
-
 # -------------------------
 # direnv for zsh
 # -------------------------
@@ -58,15 +41,6 @@ export NODE_OPTIONS="--max-old-space-size=4096"
 export LG_CONFIG_FILE="$HOME/.config/lazygit/config.yml"
 
 
-# -------------------------
-# MacVim
-# -------------------------
-# export PATH=/Applications/MacVim.app/Contents/MacOS:$PATH
-# export EDITOR=/Applications/MacVim.app/Contents/MacOS/Vim
-# alias vim='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/Vim "$@"'
-# alias vi=vim
-# alias mvim='env LANG=ja_JP.UTF-8 /Applications/MacVim.app/Contents/MacOS/MacVim "$@"'
-#
 # -------------------------
 # NeoVim
 # -------------------------
@@ -91,7 +65,8 @@ fi
 
 
 # ヒストリの設定
-HISTFILE=~/.zsh_history
+mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
+HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
 HISTSIZE=1000000
 SAVEHIST=1000000
 
@@ -230,8 +205,6 @@ RPROMPT='$(git_prompt_info)'
 
 # ---
 
-# ---
-
 assume() {
   local profile="$1"
   local mfa_token="$2"
@@ -362,9 +335,6 @@ setopt share_history
 # 同じコマンドをヒストリに残さない
 setopt hist_ignore_all_dups
 
-# 同じコマンドをヒストリに残さない
-setopt hist_ignore_all_dups
-
 # スペースから始まるコマンド行はヒストリに残さない
 setopt hist_ignore_space
 
@@ -412,16 +382,8 @@ esac
 ##################
 export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
 
-
-# source "$HOME/.rye/env"
-
 # poetry
 export PATH="$HOME/.local/bin:$PATH"
-
-# tenv
-# ない。。。
-# source '~/.tenv.completion.zsh'
-#
 
 # Flutter
 export PATH=$HOME/development/flutter/bin:$PATH
@@ -438,26 +400,13 @@ source "/opt/homebrew/share/google-cloud-sdk/path.zsh.inc"
 
 
 # ModdableSDK
-export MODDABLE=~/.local/share/moddable
+export MODDABLE="${XDG_DATA_HOME:-$HOME/.local/share}/moddable"
 export PATH=$MODDABLE/tools/bin:$PATH
 
 # php
 export PATH="/opt/homebrew/opt/php@7.4/bin:$PATH"
-# CI環境じゃない時のみ有効化
-if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
-    [[ "$TERM_PROGRAM" == "vscode" ]] && . "$(kiro --locate-shell-integration-path zsh)"
-fi
-
-# Kiro CLI post block. Keep at the bottom of this file.
-#[[ -f "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh" ]] && builtin source "${HOME}/Library/Application Support/kiro-cli/shell/zshrc.post.zsh"
-
-# 1password shell plugin
-# source /Users/ogura.koichi/.config/op/plugins.sh
-
-
-
 # pnpm
-export PNPM_HOME="/Users/ogura.koichi/Library/pnpm"
+export PNPM_HOME="$HOME/Library/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
