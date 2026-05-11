@@ -1,5 +1,5 @@
 [core]
-	excludesfile = ~/.gitignore_global
+	pager = delta
 [user]
 	name = Koichi Ogura
 	email = 12413803+number09@users.noreply.github.com
@@ -9,22 +9,16 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 [alias]
-  cleanup = !git fetch --prune && git branch -vv | grep \": gone]\" | awk \"{print \\$1}\" | xargs -r git branch -D
-
-# -- use git-delta --
-[core]
-  pager = delta
+  cleanup = !git fetch --prune && git branch -vv | grep ": gone]" | awk "{print \$1}" | xargs -r git branch -D
 
 [interactive]
   diffFilter = delta --color-only
 
 [delta]
-  navigate = true  # use n and N to move between diff sections
-  dark = true      # or light = true, or omit for auto-detection
+  navigate = true
+  dark = true
   side-by-side = true
   line-numbers = true
 
-
 [merge]
   conflictStyle = zdiff3
-# -- use git-delta --
