@@ -1,27 +1,11 @@
-PATH=/usr/local/bin:$PATH
-export PATH
-
 # vim key
 bindkey -v
 
 
-# (for M1) ARM / x86 Switcher
-charch() {
-    if  [[ "$(uname -m)" == arm64 ]]; then
-        arch=x86_64
-    elif [[ "$(uname -m)" == x86_64 ]]; then
-        arch=arm64e
-    fi
-    exec arch -arch $arch "$SHELL" -l
-}
-
-
-if [ "$(uname -m)" = "arm64" ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-  export PATH="/opt/homebrew/bin:$PATH"
-else
-  eval "$(/usr/local/bin/brew shellenv)"
-fi
+# Homebrew環境変数の初期化（HOMEBREW_PREFIX等）とPATHへの追加
+# brew shellenvにもPATH設定は含まれるが、明示的に書くことで早い段階から有効にする
+eval "$(/opt/homebrew/bin/brew shellenv)"
+export PATH="/opt/homebrew/bin:$PATH"
 
 
 # -------------------------
@@ -31,7 +15,7 @@ eval "$(direnv hook zsh)"
 
 
 # -------------------------
-# Node memory size (deffault 512MB)
+# Node memory size (default 512MB)
 # -------------------------
 export NODE_OPTIONS="--max-old-space-size=4096"
 
@@ -50,9 +34,9 @@ alias vim=nvim
 alias vi=nvim
 
 
-# ref https://gist.github.com/mollifier/4979906
-######################################
+# -------------------------
 # 環境変数
+# -------------------------
 export LANG=ja_JP.UTF-8
 
 
@@ -64,13 +48,17 @@ if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
 fi
 
 
+# -------------------------
 # ヒストリの設定
+# -------------------------
 mkdir -p "${XDG_STATE_HOME:-$HOME/.local/state}/zsh"
 HISTFILE="${XDG_STATE_HOME:-$HOME/.local/state}/zsh/history"
 HISTSIZE=1000000
 SAVEHIST=1000000
 
+# -------------------------
 # プロンプト
+# -------------------------
 if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
     PROMPT="[$(uname -m)]%{${fg[blue]}%}%n:%{${reset_color}%} %c/ %# "
 else
@@ -78,9 +66,9 @@ else
 fi
 
 
-
-# ---
-
+# -------------------------
+# git branch prompt
+# -------------------------
 typeset -g _git_info_cache=""
 typeset -g _git_info_cache_pwd=""
 typeset -g _git_info_cache_head=""
@@ -203,8 +191,10 @@ function git_prompt_info() {
 setopt prompt_subst
 RPROMPT='$(git_prompt_info)'
 
-# ---
 
+# -------------------------
+# AWS assume role
+# -------------------------
 assume() {
   local profile="$1"
   local mfa_token="$2"
@@ -273,30 +263,25 @@ assume() {
   echo "  SessionToken: ${AWS_SESSION_TOKEN:+Set}"
   echo "  Expires: ${AWS_CREDENTIAL_EXPIRATION:-N/A}"
 }
-# ---
 
 
-
-#####################################
+# -------------------------
 # 補完
-# 補完機能を有効にする
+# -------------------------
 autoload -Uz compinit
 # CI環境じゃない時のみ補完機能を有効化
 if [[ -z "$CI" ]] && [[ -z "$GITHUB_ACTIONS" ]]; then
     compinit
 fi
 
-
-
-# # 補完で小文字でも大文字にマッチさせる
+# 補完で小文字でも大文字にマッチさせる
 zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
 
 # ../ の後は今いるディレクトリを補完しない
 zstyle ':completion:*' ignore-parents parent pwd ..
 
 # sudo の後ろでコマンド名を補完する
-zstyle ':completion:*:sudo:*' command-path /usr/local/sbin /usr/local/bin \
-            /usr/sbin /usr/bin /sbin /bin /usr/11R6/bin
+zstyle ':completion:*:sudo:*' command-path /usr/sbin /usr/bin /sbin /bin
 
 # ps コマンドのプロセス名補完
 zstyle ':completion:*:processes' command 'ps x -o pid,s,args'
@@ -306,8 +291,10 @@ bindkey '^P' history-beginning-search-backward
 bindkey '^N' history-beginning-search-forward
 
 
-#############################
+# -------------------------
 # オプション
+# -------------------------
+
 # 日本語ファイル名を表示可能にする
 setopt print_eight_bit
 
@@ -344,8 +331,10 @@ setopt hist_reduce_blanks
 # 高機能なワイルドカード展開を使用する
 setopt extended_glob
 
-########################################
+
+# -------------------------
 # エイリアス
+# -------------------------
 
 # Obsidian vault
 alias cdob='cd ~/Library/CloudStorage/GoogleDrive-{{ .workEmail }}/マイドライブ/obsidian-vault'
@@ -354,54 +343,25 @@ alias cdot='cd ~/Library/CloudStorage/GoogleDrive-{{ .personalEmail }}/マイド
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
-
 alias mkdir='mkdir -p'
-
 
 # C で標準出力をクリップボードにコピーする
 # mollifier delta blog : http://mollifier.hatenablog.com/entry/20100317/p1
-if which pbcopy >/dev/null 2>&1 ; then
-    # Mac
-    alias -g C='| pbcopy'
-elif which xsel >/dev/null 2>&1 ; then
-    # Linux
-    alias -g C='| xsel --input --clipboard'
-fi
+alias -g C='| pbcopy'
+
+# ls
+export CLICOLOR=1
+alias ls='ls -G -F'
+
+# npx/npm は pnpm を使うため無効化
+alias npx='echo "WARNING: npx は実行しないでください" && false'
+alias npm='echo "WARNING: npm は実行しないでください" && false'
 
 
-#############################
-# OS 別の設定
-case ${OSTYPE} in
-    darwin*)
-        #Mac用の設定
-        export CLICOLOR=l
-        alias ls='ls -G -F'
-        ;;
-esac
-
-##################
-export PATH="/opt/homebrew/opt/mysql-client/bin:$PATH"
-
-# poetry
-export PATH="$HOME/.local/bin:$PATH"
-
-# Flutter
-export PATH=$HOME/development/flutter/bin:$PATH
-# FlutterFire CLI
-export PATH="$PATH":"$HOME/.pub-cache/bin"
+# -------------------------
+# ツール設定
+# -------------------------
 eval "$(mise activate zsh)"
-
-
-
-# google cloud sdk from homebrew
-source "/opt/homebrew/share/google-cloud-sdk/completion.zsh.inc"
-source "/opt/homebrew/share/google-cloud-sdk/path.zsh.inc"
-
-
-
-# ModdableSDK
-export MODDABLE="${XDG_DATA_HOME:-$HOME/.local/share}/moddable"
-export PATH=$MODDABLE/tools/bin:$PATH
 
 # pnpm
 export PNPM_HOME="$HOME/Library/pnpm"
@@ -409,10 +369,7 @@ case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
-# pnpm end
 
-
-alias npx='echo "WARNING: npx は実行しないでください" && false'
-alias npm='echo "WARNING: npm は実行しないでください" && false'
+# Rancher Desktop
 export PATH="$HOME/.rd/bin:$PATH"
 export DOCKER_HOST=unix:///var/run/docker.sock
