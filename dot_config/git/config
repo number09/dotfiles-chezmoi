@@ -9,7 +9,7 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 [alias]
-  cleanup = !git fetch --prune && git branch -vv | grep ": gone]" | awk "{print \$1}" | xargs -r git branch -D
+  # cleanup = !git fetch --prune && git branch -vv | grep ": gone]" | awk "{print \$1}" | xargs -r git branch -D
 
 [interactive]
   diffFilter = delta --color-only
