@@ -1,3 +1,15 @@
 README.md
 .config/lazygit/state.yml
 .config/nvim/obsidian_local.lua
+.config/claude/.claude.json
+.config/claude/history.jsonl
+.config/claude/mcp-needs-auth-cache.json
+.config/claude/backups
+.config/claude/cache
+.config/claude/paste-cache
+.config/claude/file-history
+.config/claude/projects
+.config/claude/sessions
+.config/claude/session-env
+.config/claude/shell-snapshots
+.config/claude/plugins/marketplaces
