@@ -13,3 +13,4 @@ README.md
 .config/claude/session-env
 .config/claude/shell-snapshots
 .config/claude/plugins/marketplaces
+.config/claude/plugins/known_marketplaces.json
