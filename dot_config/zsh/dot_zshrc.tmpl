@@ -195,6 +195,12 @@ RPROMPT='$(git_prompt_info)'
 # -------------------------
 # AWS assume role
 # -------------------------
+# 使い方:
+#   assume <profile-name>            # MFA コードは対話入力
+#   assume <profile-name> <mfa-code> # MFA コードを第2引数で渡す（対話プロンプト省略）
+# 1Password の TOTP を使って一発でスイッチする例:
+#   assume <profile-name> "$(op item get <1PasswordのItem名> --otp)"
+#   （<1PasswordのItem名> は IAM ユーザーの TOTP を登録した 1Password アイテム名に置換）
 assume() {
   local profile="$1"
   local mfa_token="$2"
