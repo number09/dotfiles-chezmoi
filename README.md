@@ -79,6 +79,42 @@ return {
 
 このファイルが存在しない場合は、デフォルト設定 (`~/Documents/obsidian-vault`) が使用されます。
 
+### AWS (XDG + スイッチロール)
+
+AWS CLI の `config` を XDG Base Directory 配下 (`~/.config/aws/config`) で管理します。
+パスは `dot_zshenv` の `AWS_CONFIG_FILE` で指定。**長期キーはディスクにもリポジトリにも
+保存しません**（`credentials` ファイルは作らない）。
+
+構成:
+
+- **`~/.config/aws/config`** (`dot_config/private_aws/private_config.tmpl`): chezmoi 管理。
+  `[profile test]` の `role_arn` / `mfa_serial`（アカウント ID を含むため機密）は git に
+  残さず、`chezmoi init` 時にプロンプト手入力 → `~/.config/chezmoi/chezmoi.toml` に保持。
+- **`[default]` の認証**: `credential_process` で 1Password から実行時取得。長期キーは
+  どこにも書かない。
+- **`~/.config/aws/op-credential-process.sh`** (`dot_config/private_aws/executable_op-credential-process.sh.tmpl`):
+  1Password (`op`) からアクセスキーを取得し credential_process 形式 JSON を出力する
+  ラッパー。1Password の item 名 / account も機密のため `chezmoi init` 時に手入力
+  (`.aws.opItem` / `.aws.opAccount`)。
+
+**前提**: 1Password CLI が対象アカウントにサインイン済み（デスクトップ連携で `op`
+実行時に Touch ID 等で解錠される状態）。`assume` は対話実行なのでこれで足ります。
+
+**プロンプト値の入力／変更** （`chezmoi apply` ではなく `chezmoi init` 時に評価される点に注意）:
+
+```bash
+chezmoi init        # role_arn / mfa_serial / 1Password item・account を入力
+                    #   （既入力なら再質問なし: promptStringOnce）
+chezmoi diff        # 差分プレビュー
+chezmoi apply       # ~/.config/aws/config と op-credential-process.sh を生成
+# 値を変えたいとき: chezmoi init を再実行、または ~/.config/chezmoi/chezmoi.toml を直接編集
+```
+
+スイッチロールは zshrc の `assume` 関数を使う（例: `assume test`）。
+`assume test` は `[default]` の credential_process で得た IAM ユーザー認証を使って
+`sts assume-role` し、得た一時クレデンシャルを環境変数に export する（ディスク非保存）。
+詳細は [dot_zshrc.tmpl の assume()](dot_config/zsh/dot_zshrc.tmpl#L198)。
+
 ## WezTerm ショートカットチートシート
 
 ### タブ操作

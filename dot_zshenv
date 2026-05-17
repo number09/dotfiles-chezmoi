@@ -1,1 +1,7 @@
 export ZDOTDIR="$HOME/.config/zsh"
+
+# AWS CLI の config を XDG Base Directory 配下で管理する。
+# zshrc ではなく zshenv に置くのは、AWS CLI が非対話(スクリプト/IDE/terraform 等)
+# からも呼ばれ、全 zsh 起動で確実に効かせる必要があるため。
+# credentials ファイルは作らない方針のため AWS_SHARED_CREDENTIALS_FILE は設定しない。
+export AWS_CONFIG_FILE="$HOME/.config/aws/config"

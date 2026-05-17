@@ -1,0 +1,12 @@
+[default]
+region=ap-northeast-1
+output=json
+credential_process = {{ .chezmoi.homeDir }}/.config/aws/op-credential-process.sh
+
+
+[profile test]
+region=ap-northeast-1
+role_arn={{ .aws.roleArn }}
+mfa_serial={{ .aws.mfaSerial }}
+cli_auto_prompt = on
+source_profile=default
