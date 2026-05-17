@@ -1,4 +1,5 @@
 README.md
+CLAUDE.md
 .config/lazygit/state.yml
 .config/nvim/obsidian_local.lua
 .config/claude/.claude.json
