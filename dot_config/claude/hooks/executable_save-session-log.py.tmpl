@@ -1,0 +1,258 @@
+#!/usr/bin/env python3
+"""Claude Code Stop hook: セッション会話ログを Obsidian vault に保存する。
+
+- トリガー: Stop（応答完了ごとに全履歴を再生成して上書き）
+- 出力先 : <vault>/Claude/YYYY/MM/claude-session-YYYY-MM-DD-HH-MM-SS.md
+- 仕様   : frontmatter / セッション情報 / 会話の要約 / 完全な会話履歴
+           thinking は除外。tool_use は記録。user の tool_result は除外。
+
+Stop フックを絶対にブロックしないよう、いかなる失敗でも exit 0 で抜ける。
+"""
+import sys
+import os
+import json
+from datetime import datetime, timezone, timedelta
+
+JST = timezone(timedelta(hours=9))
+
+# vault が取得できない場合のフォールバック（~ はホーム展開）
+FALLBACK_CLAUDE_DIR = os.path.expanduser(
+    "~/Library/CloudStorage/"
+    "GoogleDrive-{{ .workEmail }}/マイドライブ/obsidian-vault/Claude"
+)
+
+# 要約・履歴から除外するメタテキストの接頭辞
+META_PREFIXES = ("<command-", "<local-command-", "<system-reminder>")
+
+
+def find_claude_dir():
+    """obsidian.json から開いている vault を特定し、その配下の Claude/ を返す。"""
+    cfg = os.path.expanduser(
+        "~/Library/Application Support/obsidian/obsidian.json"
+    )
+    try:
+        with open(cfg, encoding="utf-8") as f:
+            vaults = json.load(f).get("vaults", {})
+        chosen = None
+        for v in vaults.values():
+            p = v.get("path")
+            if not p:
+                continue
+            if v.get("open"):
+                chosen = p
+                break
+            if chosen is None:
+                chosen = p
+        if chosen and os.path.isdir(chosen):
+            return os.path.join(chosen, "Claude")
+    except Exception:
+        pass
+    return FALLBACK_CLAUDE_DIR
+
+
+def to_jst(ts_raw):
+    """ISO8601(UTC, 末尾Z) を JST datetime に変換。失敗時は None。"""
+    if not ts_raw:
+        return None
+    try:
+        return datetime.fromisoformat(
+            ts_raw.replace("Z", "+00:00")
+        ).astimezone(JST)
+    except Exception:
+        return None
+
+
+def clean_text(s):
+    s = (s or "").strip()
+    if not s:
+        return ""
+    for p in META_PREFIXES:
+        if s.startswith(p):
+            return ""
+    return s
+
+
+def extract_user_text(content):
+    """user メッセージから実発言テキストのみ取り出す（tool_result は除外）。"""
+    if isinstance(content, str):
+        return clean_text(content)
+    if isinstance(content, list):
+        parts = []
+        for b in content:
+            if not isinstance(b, dict):
+                continue
+            if b.get("type") == "text":
+                t = clean_text(b.get("text", ""))
+                if t:
+                    parts.append(t)
+            # tool_result / image などは意図的にスキップ
+        return "\n\n".join(parts)
+    return ""
+
+
+def extract_assistant_body(content, tools_used):
+    """assistant メッセージを本文文字列に整形。thinking は除外、tool_use は記録。"""
+    if isinstance(content, str):
+        return clean_text(content)
+    if not isinstance(content, list):
+        return ""
+    parts = []
+    for b in content:
+        if not isinstance(b, dict):
+            continue
+        bt = b.get("type")
+        if bt == "text":
+            t = (b.get("text") or "").strip()
+            if t:
+                parts.append(t)
+        elif bt == "tool_use":
+            name = b.get("name", "?")
+            if name not in tools_used:
+                tools_used.append(name)
+            try:
+                inp = json.dumps(
+                    b.get("input", {}),
+                    ensure_ascii=False,
+                    separators=(",", ":"),
+                )
+            except Exception:
+                inp = "{}"
+            parts.append(
+                "**🔧 Tool: `%s`**\n```json\n%s\n```" % (name, inp)
+            )
+        # thinking / redacted_thinking はスキップ
+    return "\n\n".join(parts)
+
+
+def first_line(s, limit=200):
+    line = s.strip().splitlines()[0] if s.strip() else ""
+    return line if len(line) <= limit else line[:limit] + "…"
+
+
+def build_summary(turns):
+    first_user = next((t for t in turns if t["role"] == "user"), None)
+    first_asst = next(
+        (t for t in turns if t["role"] == "assistant" and t["body"].strip()
+         and not t["body"].startswith("**🔧 Tool:")),
+        None,
+    )
+    lines = ["## 💡 会話の要約", ""]
+    if first_user:
+        lines.append("- **👤 ユーザー**: " + first_line(first_user["body"]))
+    if first_asst:
+        lines.append("- **🤖 Claude**: " + first_line(first_asst["body"]))
+        excerpt = first_asst["body"].strip()
+        if excerpt:
+            lines.append("")
+            lines.append(
+                excerpt if len(excerpt) <= 400 else excerpt[:400] + "…"
+            )
+    return "\n".join(lines)
+
+
+def main():
+    raw = sys.stdin.read()
+    payload = json.loads(raw) if raw.strip() else {}
+
+    tpath = payload.get("transcript_path")
+    if not tpath or not os.path.isfile(tpath):
+        return
+    session_id = payload.get("session_id", "unknown")
+    cwd = payload.get("cwd") or os.getcwd()
+    project = os.path.basename(cwd.rstrip("/")) or "unknown"
+
+    turns = []
+    tools_used = []
+    with open(tpath, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                o = json.loads(line)
+            except Exception:
+                continue
+            if o.get("type") not in ("user", "assistant"):
+                continue
+            if o.get("isSidechain") or o.get("isMeta"):
+                continue
+            msg = o.get("message") or {}
+            content = msg.get("content")
+            dt = to_jst(o.get("timestamp"))
+            if o["type"] == "user":
+                body = extract_user_text(content)
+                role = "user"
+            else:
+                body = extract_assistant_body(content, tools_used)
+                role = "assistant"
+            if not body.strip():
+                continue
+            turns.append({"role": role, "dt": dt, "body": body})
+
+    first_user = next((t for t in turns if t["role"] == "user"), None)
+    if first_user is None or first_user["dt"] is None:
+        return  # 実ユーザー発言が無ければ書かない
+    start = first_user["dt"]
+
+    fm = "\n".join([
+        "---",
+        "date: " + start.strftime("%Y-%m-%d"),
+        "session_id: " + session_id,
+        "project: " + project,
+        "working_directory: " + cwd,
+        "tags:",
+        "  - claude-code",
+        "  - ai-conversation",
+        "  - " + project,
+        "tools_used: " + ", ".join(tools_used),
+        "---",
+    ])
+
+    info = "\n".join([
+        "# Claude Code Session",
+        "",
+        "## 📊 セッション情報",
+        "",
+        "- **日時**: " + start.strftime("%Y年%m月%d日 %H:%M:%S"),
+        "- **プロジェクト**: " + project,
+        "- **作業ディレクトリ**: `" + cwd + "`",
+        "- **セッションID**: `" + session_id + "`",
+    ])
+
+    blocks = []
+    for t in turns:
+        ts = t["dt"].strftime("%Y-%m-%dT%H:%M:%S") if t["dt"] else ""
+        hdr = ("👤 ユーザー" if t["role"] == "user" else "🤖 Claude")
+        blocks.append(
+            "### %s (%s)\n\n%s\n\n---" % (hdr, ts, t["body"].strip())
+        )
+
+    doc = (
+        fm + "\n\n"
+        + info + "\n\n"
+        + build_summary(turns)
+        + "\n\n---\n\n## 💬 完全な会話履歴\n\n"
+        + "\n\n".join(blocks)
+        + "\n"
+    )
+
+    out_dir = os.path.join(
+        find_claude_dir(), start.strftime("%Y"), start.strftime("%m")
+    )
+    os.makedirs(out_dir, exist_ok=True)
+    fname = "claude-session-" + start.strftime("%Y-%m-%d-%H-%M-%S") + ".md"
+    out_path = os.path.join(out_dir, fname)
+
+    tmp = out_path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.write(doc)
+    os.replace(tmp, out_path)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except Exception:
+        # Stop フックは決してブロックしない
+        pass
+    sys.exit(0)

@@ -1,3 +1,18 @@
 {
-  "theme": "dark"
+  "theme": "dark",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$HOME/.config/claude/hooks/save-session-log.py\"",
+            "async": true,
+            "timeout": 30,
+            "statusMessage": "会話ログを Obsidian に保存中"
+          }
+        ]
+      }
+    ]
+  }
 }
