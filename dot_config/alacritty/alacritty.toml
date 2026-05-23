@@ -1,0 +1,64 @@
+[window]
+# 背景を軽く透過
+opacity = 0.95
+padding = { x = 10, y = 10 }
+# macOS でタイトルバーを非表示にしてスッキリ見せる
+decorations = "buttonless"
+# Option キーを Meta (Alt) として扱う。zsh の単語単位移動 (Option+←/→) 等で必要
+option_as_alt = "Both"
+
+[font]
+size = 14.0
+
+[font.normal]
+family = "Ricty Diminished"
+style = "Regular"
+
+[font.bold]
+family = "Ricty Diminished"
+style = "Bold"
+
+[font.italic]
+family = "Ricty Diminished"
+style = "Italic"
+
+[font.bold_italic]
+family = "Ricty Diminished"
+style = "Bold Italic"
+
+# Iceberg Dark
+# https://github.com/cocopon/iceberg.vim
+[colors.primary]
+background = "#161821"
+foreground = "#c6c8d1"
+
+[colors.cursor]
+text   = "#161821"
+cursor = "#c6c8d1"
+
+[colors.selection]
+text       = "#c6c8d1"
+background = "#1e2132"
+
+[colors.normal]
+black   = "#161821"
+red     = "#e27878"
+green   = "#b4be82"
+yellow  = "#e2a478"
+blue    = "#84a0c6"
+magenta = "#a093c7"
+cyan    = "#89b8c2"
+white   = "#c6c8d1"
+
+[colors.bright]
+black   = "#6b7089"
+red     = "#e98989"
+green   = "#c0ca8e"
+yellow  = "#e9b189"
+blue    = "#91acd1"
+magenta = "#ada0d3"
+cyan    = "#95c4ce"
+white   = "#d2d4de"
+
+[cursor]
+style = { shape = "Block", blinking = "On" }
