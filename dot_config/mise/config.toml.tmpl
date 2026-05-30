@@ -1,5 +1,8 @@
 # mise グローバル設定 — ユーザー全体の開発ツール / LSP / ツールチェーン
 #
+# 注: このソースは chezmoi テンプレート(.tmpl)。素材ファイル名が config.toml で
+#     ないため、mise が chezmoi ソース内を「mise/config.toml」として誤検出しない。
+#
 # 方針: 開発ツールは「個人のツール」としてここに集約する。
 #   - Homebrew は GUI / システム物のみ（開発ツール・LSP は置かない）
 #   - プロジェクトの mise.toml はランタイムの「バージョン上書き」に使う
@@ -9,6 +12,11 @@
 #   - 隣の mise.lock で実バージョンを固定（latest 表記でも install は lock に従う）
 #   - 更新は手動 `mise upgrade` のときだけ。数日寝かせてから上げる運用で cooldown を担保
 #   - aqua 系は cosign / slsa / minisign / github_attestations 検証がデフォルト ON
+
+[settings]
+# chezmoi ソースツリー配下の mise 設定を mise が誤検出して未 trust エラーを出すのを防ぐ。
+# config 内では ~ が展開されないため、chezmoi テンプレートで絶対パスを注入する。
+ignored_config_paths = ["{{ .chezmoi.homeDir }}/.local/share/chezmoi"]
 
 [tools]
 # --- ランタイム / ツールチェーン（baseline。プロジェクトで上書き可）---
