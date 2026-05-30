@@ -4,6 +4,7 @@
 
 [data.aws]
   roleArn = {{ promptStringOnce . "aws.roleArn" "AWS: スイッチ先の role_arn ('test' profile, arn:aws:iam::<アカウントID>:role/<ロール>)" | quote }}
+  readonlyRoleArn = {{ promptStringOnce . "aws.readonlyRoleArn" "AWS: readonly profile の role_arn (arn:aws:iam::<アカウントID>:role/<ロール>)" | quote }}
   mfaSerial = {{ promptStringOnce . "aws.mfaSerial" "スイッチ元AWS: IAMユーザーの mfa_serial (arn:aws:iam::<アカウントID>:mfa/<ユーザー>)" | quote }}
   opItem = {{ promptStringOnce . "aws.opItem" "AWS: アクセスキーを格納した1Passwordアイテム名 (例: AWS)" | quote }}
   opAccount = {{ promptStringOnce . "aws.opAccount" "AWS: 1Passwordアカウント識別子 (例: my.1password.com)" | quote }}
