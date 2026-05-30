@@ -1,13 +1,15 @@
 -- https://zenn.dev/ras96/articles/4d9d9493d29c06
 
 vim.lsp.enable({
-  -- nvim-lspconfig で"lua_ls"という名前で設定したプリセットが読まれる
-  -- https://github.com/neovim/nvim-lspconfig/blob/master/lsp/lua_ls.lua
+  -- nvim-lspconfig で同名のプリセット(lsp/<name>.lua)が読まれ、
+  -- after/lsp/<name>.lua で上書き・追記する。
+  -- cmd はプリセットが mise 管理のバイナリを指す（vtsls / basedpyright-langserver /
+  -- ruff server / terraform-ls serve / lua-language-server）。
   "lua_ls",
-  "ts_ls",
-  "pyright",
-  -- 他の言語サーバーの設定
-  -- "gopls",
+  "vtsls",        -- TypeScript/JavaScript（旧 ts_ls から移行）
+  "basedpyright", -- Python: 型チェック/補完（旧 pyright から移行）
+  "ruff",         -- Python: lint/format（basedpyright と分業）
+  "terraformls",  -- Terraform
 })
 
 -- 言語サーバーがアタッチされた時に呼ばれる
