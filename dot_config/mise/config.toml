@@ -1,9 +1,9 @@
-# mise グローバル設定 — ユーザー全体の開発ツール / LSP
+# mise グローバル設定 — ユーザー全体の開発ツール / LSP / ツールチェーン
 #
-# 方針: LSP は「個人の開発ツール」としてここに集約する。
-#   - Homebrew には LSP を置かない
-#   - プロジェクトの mise.toml にも LSP を置かない（あちらはランタイムのみ）
-#   - node はグローバルの安定ベースとして lts 固定。npm系LSPの土台。
+# 方針: 開発ツールは「個人のツール」としてここに集約する。
+#   - Homebrew は GUI / システム物のみ（開発ツール・LSP は置かない）
+#   - プロジェクトの mise.toml はランタイムの「バージョン上書き」に使う
+#   - グローバルは安定版を baseline として常備し、プロジェクト側で必要に応じ上書き
 #
 # サプライチェーン対策:
 #   - 隣の mise.lock で実バージョンを固定（latest 表記でも install は lock に従う）
@@ -11,8 +11,14 @@
 #   - aqua 系は cosign / slsa / minisign / github_attestations 検証がデフォルト ON
 
 [tools]
-node = "lts"                                  # npm系LSPの安定ベース
+# --- ランタイム / ツールチェーン（baseline。プロジェクトで上書き可）---
+node = "lts"     # npm系LSPの土台 兼 JS ランタイム baseline
+pnpm = "latest"  # node 連動の JS パッケージマネージャ（旧 brew から移行）
+go = "latest"    # Go ツールチェーン（旧 brew から移行）
+rust = "stable"  # Rust ツールチェーン（rustup ベース。旧 brew rust から移行）
+"aqua:astral-sh/uv" = "latest"  # Python パッケージ/プロジェクト管理（旧 brew から移行）
 
+# --- LSP（neovim 用。個人の開発ツールとして集約）---
 "npm:@vtsls/language-server"     = "latest"   # TypeScript LSP
 "npm:basedpyright"               = "latest"   # Python LSP（型/補完）
 "aqua:astral-sh/ruff"            = "latest"   # Python（lint/format, ruff server）
