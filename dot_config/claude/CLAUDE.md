@@ -54,3 +54,12 @@
 - **シンプル優先**: あらゆる変更を可能な限りシンプルに保つ。影響範囲は最小限のコードにとどめる
 - **手抜きをしない**: 根本原因を突き止める。場当たり的な修正はしない。シニア開発者の水準を守る
 - **最小インパクト**: 変更は必要な箇所のみに留め、新たなバグを持ち込まない
+
+## dotfile の編集（chezmoi 管理）
+
+- `~/.config/` 配下をはじめ、ホーム以下の dotfile は chezmoi で管理している
+- これらのファイルを**直接編集してはならない**（次の `chezmoi apply` で上書きされ、変更が失われるため）
+- 編集対象のソースパスは `chezmoi source-path <ファイルパス>` で特定する
+  - 例: `chezmoi source-path ~/.config/claude/CLAUDE.md` → `~/.local/share/chezmoi/dot_config/claude/CLAUDE.md`
+- chezmoi ソース（`~/.local/share/chezmoi/`）側を編集し、その後 `chezmoi apply` を実行して実環境に反映する
+- このルールは本ファイル（CLAUDE.md）自身の編集にも適用される
