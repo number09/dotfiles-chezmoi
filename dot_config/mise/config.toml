@@ -1,0 +1,20 @@
+# mise グローバル設定 — ユーザー全体の開発ツール / LSP
+#
+# 方針: LSP は「個人の開発ツール」としてここに集約する。
+#   - Homebrew には LSP を置かない
+#   - プロジェクトの mise.toml にも LSP を置かない（あちらはランタイムのみ）
+#   - node はグローバルの安定ベースとして lts 固定。npm系LSPの土台。
+#
+# サプライチェーン対策:
+#   - 隣の mise.lock で実バージョンを固定（latest 表記でも install は lock に従う）
+#   - 更新は手動 `mise upgrade` のときだけ。数日寝かせてから上げる運用で cooldown を担保
+#   - aqua 系は cosign / slsa / minisign / github_attestations 検証がデフォルト ON
+
+[tools]
+node = "lts"                                  # npm系LSPの安定ベース
+
+"npm:@vtsls/language-server"     = "latest"   # TypeScript LSP
+"npm:basedpyright"               = "latest"   # Python LSP（型/補完）
+"aqua:astral-sh/ruff"            = "latest"   # Python（lint/format, ruff server）
+"aqua:hashicorp/terraform-ls"    = "latest"   # Terraform LSP
+"aqua:LuaLS/lua-language-server" = "latest"   # Lua LSP
