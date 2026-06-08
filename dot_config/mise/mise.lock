@@ -214,6 +214,10 @@ backend = "npm:@vtsls/language-server"
 version = "1.39.6"
 backend = "npm:basedpyright"
 
+[[tools."pipx:git-remote-codecommit"]]
+version = "1.17"
+backend = "pipx:git-remote-codecommit"
+
 [[tools.pnpm]]
 version = "11.5.0"
 backend = "aqua:pnpm/pnpm"
