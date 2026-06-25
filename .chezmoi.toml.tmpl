@@ -8,3 +8,7 @@
   mfaSerial = {{ promptStringOnce . "aws.mfaSerial" "スイッチ元AWS: IAMユーザーの mfa_serial (arn:aws:iam::<アカウントID>:mfa/<ユーザー>)" | quote }}
   opItem = {{ promptStringOnce . "aws.opItem" "AWS: アクセスキーを格納した1Passwordアイテム名 (例: AWS)" | quote }}
   opAccount = {{ promptStringOnce . "aws.opAccount" "AWS: 1Passwordアカウント識別子 (例: my.1password.com)" | quote }}
+
+[data.otlp]
+  endpoint = {{ promptStringOnce . "otlp.endpoint" "OTLP: API Gateway エンドポイント URL (例: https://xxxxx.execute-api.ap-northeast-1.amazonaws.com/prod)" | quote }}
+  apiKey = {{ promptStringOnce . "otlp.apiKey" "OTLP: API Key の値" | quote }}
