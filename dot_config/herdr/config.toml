@@ -1,0 +1,45 @@
+# herdr configuration  (chezmoi 管理: dot_config/herdr/config.toml -> ~/.config/herdr/config.toml)
+#
+# 方針: 既存の tmux ショートカット (~/.config/tmux/tmux.conf) と同じキーで herdr を操作する。
+#   - tmux window   = herdr tab
+#   - tmux session  = herdr workspace   (ユーザー指定のマッピング)
+#   - tmux は prefix なしの M-(Alt) 直接バインド中心 -> herdr でも alt+... 直接バインドで同一キーを再現
+#
+# 反映: `chezmoi apply` 後、サーバ稼働中なら `herdr server reload-config`
+# 既定確認: `herdr --default-config`  /  キー初期化: `herdr config reset-keys`
+
+[keys]
+# prefix は tmux 既定と同じ ctrl+b のまま。prefix 系アクションは tmux の指の記憶がそのまま効く。
+prefix = "ctrl+b"
+
+# --- Tabs (= tmux window) ---
+new_tab       = "alt+n"    # tmux: M-n  new-window
+next_tab      = "alt+l"    # tmux: M-l  next-window
+previous_tab  = "alt+h"    # tmux: M-h  previous-window
+rename_tab    = "alt+r"    # tmux: M-r  rename-window
+
+# --- Workspaces (= tmux session) ---  ★ workspace=session マッピング
+new_workspace      = "alt+shift+n"  # tmux: M-N  new-session
+next_workspace     = "alt+j"        # tmux: M-j  switch-client -n  (herdr 既定は未割当)
+previous_workspace = "alt+k"        # tmux: M-k  switch-client -p  (herdr 既定は未割当)
+rename_workspace   = "alt+shift+r"  # tmux: M-R  rename-session  (rename_tab=alt+r と衝突回避のため shift 付き。既定 prefix+shift+w)
+
+# --- Splits ---
+# 注意: tmux と herdr は vertical/horizontal の呼称が逆。物理的な分割方向を維持する。
+#   / -> 左右分割 (tmux split-window -h),  - -> 上下分割 (tmux split-window -v)
+split_vertical   = "alt+/"      # tmux: M-/  左右に分割 (縦の仕切り)  ※修飾+記号は端末依存の可能性あり
+split_horizontal = "alt+minus"  # tmux: M--  上下に分割 (横の仕切り)  herdr 既定 prefix+minus とも整合
+
+# --- Pane focus (= tmux select-pane, 矢印キー) ---
+focus_pane_up    = "alt+up"     # tmux: M-Up
+focus_pane_down  = "alt+down"   # tmux: M-Down
+focus_pane_left  = "alt+left"   # tmux: M-Left
+focus_pane_right = "alt+right"  # tmux: M-Right
+
+# --- Sidebar ---
+# サイドバー表示/非表示トグル。B=Bar の連想 (herdr 既定 prefix+b / VS Code Cmd+B と同系統)。alt 直接バインドで統一。
+toggle_sidebar = "alt+b"
+
+# --- prefix 系: tmux 既定へのパリティ合わせ ---
+detach           = "prefix+d"   # tmux: C-b d  (herdr 既定は prefix+q)
+workspace_picker = "prefix+s"   # tmux: C-b s  session 選択 (workspace=session に合わせる。既定 prefix+w)
