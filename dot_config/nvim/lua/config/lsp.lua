@@ -10,6 +10,7 @@ vim.lsp.enable({
   "basedpyright", -- Python: 型チェック/補完（旧 pyright から移行）
   "ruff",         -- Python: lint/format（basedpyright と分業）
   "terraformls",  -- Terraform
+  "marksman",     -- Markdown（見出し/リンク補完・ナビゲーション）
 })
 
 -- 言語サーバーがアタッチされた時に呼ばれる
