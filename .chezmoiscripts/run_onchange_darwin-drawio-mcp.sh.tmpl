@@ -1,0 +1,27 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+set -euo pipefail
+
+# drawio MCP ツールサーバー（stdio）を Claude Code の user スコープに登録する。
+#
+# - user スコープの実体は ~/.config/claude/.claude.json（揮発ファイルで chezmoi 管理外）。
+#   そのため「登録操作そのもの」をこの run_onchange スクリプトとして追跡し、
+#   内容が変わったときだけ冪等に再登録する（真実の源＝このスクリプト）。
+# - npx は使わない方針のため pnpm dlx で起動する。
+# - 既存登録があると add が失敗するので、いったん remove してから add する。
+
+if ! command -v claude >/dev/null 2>&1; then
+  echo "drawio-mcp: claude が見つからないためスキップ" >&2
+  exit 0
+fi
+
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "drawio-mcp: pnpm が見つからないためスキップ" >&2
+  exit 0
+fi
+
+claude mcp remove -s user drawio >/dev/null 2>&1 || true
+claude mcp add -s user --transport stdio drawio -- pnpm dlx @drawio/mcp
+
+echo "drawio-mcp: user スコープに登録しました (pnpm dlx @drawio/mcp)"
+{{ end -}}
