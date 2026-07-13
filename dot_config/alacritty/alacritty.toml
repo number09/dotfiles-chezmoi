@@ -11,20 +11,20 @@ option_as_alt = "Both"
 size = 14.0
 
 [font.normal]
-family = "Ricty Diminished"
+family = "HackGen Console NF"
 style = "Regular"
 
 [font.bold]
-family = "Ricty Diminished"
+family = "HackGen Console NF"
 style = "Bold"
 
 [font.italic]
-family = "Ricty Diminished"
-style = "Italic"
+family = "HackGen Console NF"
+style = "Regular"
 
 [font.bold_italic]
-family = "Ricty Diminished"
-style = "Bold Italic"
+family = "HackGen Console NF"
+style = "Bold"
 
 # Iceberg Dark
 # https://github.com/cocopon/iceberg.vim
