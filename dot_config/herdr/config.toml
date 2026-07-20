@@ -41,5 +41,14 @@ focus_pane_right = "alt+right"  # tmux: M-Right
 toggle_sidebar = "alt+b"
 
 # --- prefix 系: tmux 既定へのパリティ合わせ ---
-detach           = "prefix+d"   # tmux: C-b d  (herdr 既定は prefix+q)
+detach           = "alt+d"      # tmux: M-d  (prefix なし直接バインド)
+close_workspace  = "alt+shift+x"  # tmux: M-X  kill-session (確認プロンプト付き: ui.confirm_close=true)
 workspace_picker = "prefix+s"   # tmux: C-b s  session 選択 (workspace=session に合わせる。既定 prefix+w)
+
+# --- Custom commands ---
+[[keys.command]]
+key = "prefix+alt+g"
+type = "popup"
+command = "lazygit"
+width = "80%"
+height = "80%"
