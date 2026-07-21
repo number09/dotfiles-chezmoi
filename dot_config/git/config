@@ -1,5 +1,5 @@
 [core]
-	pager = delta
+	pager = hunk pager
 [user]
 	name = Koichi Ogura
 	email = 12413803+number09@users.noreply.github.com
@@ -10,15 +10,6 @@
 	process = git-lfs filter-process
 [alias]
   # cleanup = !git fetch --prune && git branch -vv | grep ": gone]" | awk "{print \$1}" | xargs -r git branch -D
-
-[interactive]
-  diffFilter = delta --color-only
-
-[delta]
-  navigate = true
-  dark = true
-  side-by-side = true
-  line-numbers = true
 
 [merge]
   conflictStyle = zdiff3
